@@ -1,0 +1,25 @@
+[project]
+name = "ai-job-aggregator"
+version = "0.1.0"
+description = "Aggregate AI/ML job listings into a unified feed"
+readme = "README.md"
+authors = [
+    { name = "Adnan", email = "aa2232786@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "ruff>=0.9.0",
+  "pyright>=1.1.390",
+  "mypy>=1.8.0",
+  "pre-commit>=3.6.0",
+]
+
+[project.scripts]
+ai-job-aggregator = "ai_job_aggregator.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
