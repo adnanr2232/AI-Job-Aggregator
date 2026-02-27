@@ -1,16 +1,21 @@
-# AI-Job-Aggregator
+# AI Job Aggregator
 
-Job aggregation + scoring/ranking against a user profile.
+Bootstrap scaffold for a Python CLI + package.
 
-Planned:
-- Ingest job listings from multiple sources (starting with public sources; no ToS-violating scraping).
-- Normalize to a common schema.
-- Score jobs against a candidate profile (skills, seniority, location/remote fit, keywords).
-- Store in a DB and expose via CLI/API.
+## Quickstart
 
-## Tech
-- Python
-- `uv` for dependency management
+```bash
+uv sync --dev
+uv run ai-job-aggregator --version
+uv run ai-job-aggregator
+```
 
-## Notes
-This repo intentionally does **not** commit credentials, API keys, or generated dependency artifacts.
+## Dev tooling
+
+```bash
+uv run ruff check .
+uv run ruff format .
+uv run pyright
+uv run mypy .
+uv run pre-commit run -a
+```
