@@ -27,6 +27,18 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["remoteok"],
         help="Connector source (default: remoteok)",
     )
+    ingest.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Max items to fetch from the connector for this run (clamped to hard cap)",
+    )
+    ingest.add_argument(
+        "--profile",
+        type=str,
+        default=None,
+        help="Candidate profile selector (id or label); stored on ingestion_run",
+    )
 
     sub.add_parser("db-init", help="Create tables directly (dev convenience; prefer alembic)")
 
@@ -68,7 +80,12 @@ def main(argv: list[str] | None = None) -> int:
 
         connector = RemoteOkConnector(settings)
         with SessionFactory() as session:
-            return run_ingestion(session=session, connector=connector)
+            return run_ingestion(
+                session=session,
+                connector=connector,
+                limit=args.limit,
+                profile_selector=args.profile,
+            )
 
     parser.print_help()
     return 0

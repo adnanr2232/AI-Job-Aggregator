@@ -27,7 +27,11 @@ This file is for continuity across sessions.
   - Requires a User-Agent header to avoid 403.
   - First element is metadata/legal; connector skips it.
 
-### DB schema (initial)
+### DB schema (initial + profiles)
+- `candidate_profiles`
+  - Semi-structured `data` JSON plus optional extracted fields (`label`, `name`, `location`, `role`, `skills`).
+  - `label` is unique when set (convenience selector).
+
 - `job_postings`
   - Includes extracted fields plus `raw` JSON for additional/unmodeled fields.
   - Dedup strategy: `(source, source_item_id)` unique-ish behavior in ingestion (mark duplicates as `skipped`).
@@ -66,6 +70,5 @@ AJA_STORAGE_DIR=/tmp/job-aggregator ai-job-aggregator ingest --source remoteok
 ## Near-term next steps
 - Add DB init via Alembic (preferred) and ensure CLI uses migrations.
 - Add basic heuristic scoring fields + scoring table (job_id, profile_id, score, reasons JSON).
-- Add candidate profiles table (semi-structured JSON + extracted fields).
 - Add filters: remote-only, keywords, seniority etc.
 - Add a simple FastAPI read-only endpoint to list jobs and ingestion runs.

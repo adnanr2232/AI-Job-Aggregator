@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     # RemoteOK API endpoint
     remoteok_url: str = "https://remoteok.com/api"
 
+    # Ingestion limits
+    # Default max number of items to fetch per connector call.
+    # Can be overridden per-run via CLI --limit, but will be clamped to hard cap.
+    max_fetch_per_connector: int = 50
+
     def resolved_db_path(self) -> Path:
         return self.db_path or (self.storage_dir / "data" / "jobs.sqlite3")
 

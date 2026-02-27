@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ai_job_aggregator.connectors.base import JobConnector
+from ai_job_aggregator.models.candidate_profile import CandidateProfile
 from ai_job_aggregator.models.ingestion import (
     IngestionError,
     IngestionItem,
@@ -16,28 +17,101 @@ from ai_job_aggregator.models.ingestion import (
     RunStatus,
 )
 from ai_job_aggregator.models.job import JobPosting
+from ai_job_aggregator.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 
-def run_ingestion(*, session: Session, connector: JobConnector) -> int:
+HARD_CAP_MAX_FETCH_PER_CONNECTOR = 100
+
+
+def _clamp_fetch_limit(*, settings_limit: int, cli_limit: int | None) -> int:
+    # Prefer explicit CLI limit if provided.
+    raw = cli_limit if cli_limit is not None else settings_limit
+    if raw <= 0:
+        return 0
+    return min(raw, HARD_CAP_MAX_FETCH_PER_CONNECTOR)
+
+
+def run_ingestion(
+    *,
+    session: Session,
+    connector: JobConnector,
+    limit: int | None = None,
+    profile_selector: str | None = None,
+) -> int:
     run = IngestionRun(
         source=connector.source,
         started_at=datetime.now(tz=UTC),
         status=RunStatus.started,
         meta={},
     )
+    # Candidate profile selection (optional)
+    if profile_selector:
+        # selector can be numeric id or string label
+        prof = None
+        if profile_selector.isdigit():
+            prof = session.get(CandidateProfile, int(profile_selector))
+        if prof is None:
+            prof = session.execute(
+                select(CandidateProfile).where(CandidateProfile.label == profile_selector)
+            ).scalar_one_or_none()
+
+        if prof is not None:
+            run.profile_id = prof.id
+            run.meta = {
+                **(run.meta or {}),
+                "profile": {
+                    "id": prof.id,
+                    "label": prof.label,
+                    "name": prof.name,
+                    "location": prof.location,
+                    "role": prof.role,
+                    "skills": prof.skills,
+                },
+            }
+        else:
+            run.meta = {**(run.meta or {}), "profile": {"selector": profile_selector}}
+
     session.add(run)
     session.commit()
 
-    logger.info("ingestion_run_started", extra={"run_id": run.id, "source": connector.source})
+    logger.info(
+        "ingestion_run_started",
+        extra={"run_id": run.id, "source": connector.source, "profile": profile_selector},
+    )
 
     ok_count = 0
     err_count = 0
     skipped_count = 0
 
     try:
-        for job in connector.fetch():
+        settings = Settings()
+        fetch_limit = _clamp_fetch_limit(
+            settings_limit=settings.max_fetch_per_connector,
+            cli_limit=limit,
+        )
+
+        if fetch_limit == 0:
+            logger.info(
+                "ingestion_run_noop_limit",
+                extra={"run_id": run.id, "source": connector.source, "limit": fetch_limit},
+            )
+            run.status = RunStatus.finished
+            run.finished_at = datetime.now(tz=UTC)
+            run.meta = {
+                **(run.meta or {}),
+                "ok": ok_count,
+                "skipped": skipped_count,
+                "error": err_count,
+                "limit": fetch_limit,
+            }
+            session.commit()
+            return 0
+
+        for idx, job in enumerate(connector.fetch()):
+            if idx >= fetch_limit:
+                break
             source_item_id = job.source_item_id
             item = IngestionItem(
                 run_id=run.id,
@@ -91,9 +165,11 @@ def run_ingestion(*, session: Session, connector: JobConnector) -> int:
         run.status = RunStatus.finished
         run.finished_at = datetime.now(tz=UTC)
         run.meta = {
+            **(run.meta or {}),
             "ok": ok_count,
             "skipped": skipped_count,
             "error": err_count,
+            "limit": fetch_limit,
         }
         session.commit()
         logger.info(
@@ -112,10 +188,12 @@ def run_ingestion(*, session: Session, connector: JobConnector) -> int:
         run.status = RunStatus.failed
         run.finished_at = datetime.now(tz=UTC)
         run.meta = {
+            **(run.meta or {}),
             "ok": ok_count,
             "skipped": skipped_count,
             "error": err_count,
             "fatal": {"error_type": type(e).__name__, "message": str(e)},
+            "limit": locals().get("fetch_limit", None),
         }
         session.commit()
         logger.error(

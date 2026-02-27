@@ -12,6 +12,9 @@ uv run ai-job-aggregator db-init
 
 # Ingest from RemoteOK (public JSON API)
 uv run ai-job-aggregator ingest --source remoteok
+
+# limit ingestion per run
+uv run ai-job-aggregator ingest --source remoteok --limit 50
 ```
 
 ### Configuration
@@ -21,12 +24,16 @@ Environment variables (prefix: `AJA_`):
 - `AJA_STORAGE_DIR` (defaults to a local directory; set it to whatever you want)
 - `AJA_DB_PATH` (optional override; otherwise `${AJA_STORAGE_DIR}/data/jobs.sqlite3`)
 - `AJA_REMOTEOK_URL` (default: `https://remoteok.com/api`)
+- `AJA_MAX_FETCH_PER_CONNECTOR` (default: `50`, hard cap: `100`)
 
 Example:
 
 ```bash
 AJA_STORAGE_DIR=/tmp/job-aggregator uv run ai-job-aggregator db-init
 AJA_STORAGE_DIR=/tmp/job-aggregator uv run ai-job-aggregator ingest
+
+# optional: pick a candidate profile by id or label
+AJA_STORAGE_DIR=/tmp/job-aggregator uv run ai-job-aggregator ingest --profile default
 ```
 
 ### Notes

@@ -31,6 +31,11 @@ class IngestionRun(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[RunStatus] = mapped_column(Enum(RunStatus), default=RunStatus.started)
 
+    # Optional candidate context (no scoring yet; just association + snapshot in meta)
+    profile_id: Mapped[int | None] = mapped_column(
+        ForeignKey("candidate_profiles.id"), nullable=True, index=True
+    )
+
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
 
     items: Mapped[list[IngestionItem]] = relationship(
