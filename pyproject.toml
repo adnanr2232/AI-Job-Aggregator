@@ -7,7 +7,14 @@ authors = [
     { name = "Adnan", email = "aa2232786@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "alembic>=1.18.4",
+    "httpx>=0.28.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "rich>=14.3.3",
+    "sqlalchemy>=2.0.47",
+]
 
 [dependency-groups]
 dev = [
@@ -19,6 +26,11 @@ dev = [
 
 [project.scripts]
 ai-job-aggregator = "ai_job_aggregator.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "typeshed-client>=2.8.2",
+]
 
 [build-system]
 requires = ["uv_build>=0.10.4,<0.11.0"]
