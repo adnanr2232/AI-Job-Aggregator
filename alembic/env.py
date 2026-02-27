@@ -2,6 +2,8 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
+# Ensure all model modules are imported so Base.metadata is complete for autogenerate.
+import ai_job_aggregator.models.scoring  # noqa: F401
 from ai_job_aggregator.models import Base
 from ai_job_aggregator.settings import Settings
 from alembic import context

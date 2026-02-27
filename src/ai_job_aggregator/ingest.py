@@ -172,6 +172,28 @@ def run_ingestion(
             "limit": fetch_limit,
         }
         session.commit()
+
+        # enqueue scoring asynchronously for profile-bound ingestion runs
+        if run.profile_id is not None:
+            try:
+                from ai_job_aggregator.scoring.enqueue import enqueue_scoring_run
+                from ai_job_aggregator.scoring.service import create_scoring_run
+
+                scoring_run = create_scoring_run(
+                    session=session,
+                    profile_id=run.profile_id,
+                    ingestion_run_id=run.id,
+                    meta={"source": connector.source},
+                )
+                session.commit()
+                enqueue_scoring_run(run_id=scoring_run.id)
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "scoring_enqueue_failed",
+                    extra={"ingestion_run_id": run.id, "profile_id": run.profile_id},
+                    exc_info=True,
+                )
+
         logger.info(
             "ingestion_run_finished",
             extra={

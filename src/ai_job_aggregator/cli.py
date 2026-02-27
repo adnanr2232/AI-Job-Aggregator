@@ -42,6 +42,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("db-init", help="Create tables directly (dev convenience; prefer alembic)")
 
+    sub.add_parser("worker", help="Run RQ worker (listens on scoring queue)")
+
+    score = sub.add_parser("score", help="Run scoring synchronously for a scoring run")
+    score.add_argument("--run-id", type=int, required=True, help="Scoring run id")
+
     return parser
 
 
@@ -86,6 +91,19 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
                 profile_selector=args.profile,
             )
+
+    if args.cmd == "worker":
+        from ai_job_aggregator.worker import run_worker
+
+        run_worker()
+        return 0
+
+    if args.cmd == "score":
+        from ai_job_aggregator.scoring.service import score_run
+
+        with SessionFactory() as session:
+            score_run(session=session, run_id=args.run_id)
+        return 0
 
     parser.print_help()
     return 0
