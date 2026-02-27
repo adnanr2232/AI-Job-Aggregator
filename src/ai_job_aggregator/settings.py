@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Root storage directory (default: ~/Desktop/job-aggregator)
+    # Root storage directory (set via AJA_STORAGE_DIR)
     storage_dir: Path = Path.home() / "Desktop" / "job-aggregator"
 
     # SQLite database path inside storage_dir by default

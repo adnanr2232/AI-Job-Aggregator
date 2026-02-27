@@ -7,7 +7,7 @@ Bootstrap scaffold for a Python CLI + package.
 ```bash
 uv sync --dev
 
-# Initialize your local DB (stored in ~/Desktop/job-aggregator by default)
+# Initialize your local DB (stored under `AJA_STORAGE_DIR`)
 uv run ai-job-aggregator db-init
 
 # Ingest from RemoteOK (public JSON API)
@@ -18,7 +18,7 @@ uv run ai-job-aggregator ingest --source remoteok
 
 Environment variables (prefix: `AJA_`):
 
-- `AJA_STORAGE_DIR` (default: `~/Desktop/job-aggregator`)
+- `AJA_STORAGE_DIR` (defaults to a local directory; set it to whatever you want)
 - `AJA_DB_PATH` (optional override; otherwise `${AJA_STORAGE_DIR}/data/jobs.sqlite3`)
 - `AJA_REMOTEOK_URL` (default: `https://remoteok.com/api`)
 

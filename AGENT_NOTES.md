@@ -38,7 +38,7 @@ This file is for continuity across sessions.
 
 ### Settings
 - `AJA_` env prefix (pydantic-settings)
-- Storage dir default: `~/Desktop/job-aggregator`
+- Storage dir is configurable via `AJA_STORAGE_DIR` (set it to whatever you want)
 - DB default: `${storage_dir}/data/jobs.sqlite3`
 
 ## How to run
