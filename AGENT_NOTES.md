@@ -4,7 +4,8 @@ This file is for continuity across sessions.
 
 ## Repo
 - GitHub: https://github.com/adnanr2232/AI-Job-Aggregator
-- Local path (OpenClaw workspace): `/home/slowgamer/.openclaw/workspace/AI-Job-Aggregator`
+- Local path (OpenClaw workspace): `${OPENCLAW_HOME}/workspace/AI-Job-Aggregator`
+  - Example (this machine): `/home/slowgamer/.openclaw/workspace/AI-Job-Aggregator`
 
 ## Goals
 - Aggregate jobs from multiple sources (start with official/public feeds and APIs; avoid ToS-violating scraping).
@@ -42,7 +43,7 @@ This file is for continuity across sessions.
 
 ## How to run
 ```bash
-cd /home/slowgamer/.openclaw/workspace/AI-Job-Aggregator
+cd ${OPENCLAW_HOME}/workspace/AI-Job-Aggregator
 uv sync --dev
 
 # initialize DB
